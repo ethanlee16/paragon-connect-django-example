@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from jose import jwt
+from django.conf import settings
 
 # Create your views here.
 
@@ -18,13 +20,17 @@ def index(request):
     num_visits = request.session.get('num_visits', 1)
     request.session['num_visits'] = num_visits+1
 
+    context = {'num_books': num_books, 'num_instances': num_instances,
+                 'num_instances_available': num_instances_available, 'num_authors': num_authors,
+                 'num_visits': num_visits}
+    if request.user.is_authenticated:
+        context['paragon_jwt'] = jwt.encode({ 'sub': request.user.id }, settings.PARAGON_SIGNING_TOKEN, algorithm='RS256')
+
     # Render the HTML template index.html with the data in the context variable.
     return render(
         request,
         'index.html',
-        context={'num_books': num_books, 'num_instances': num_instances,
-                 'num_instances_available': num_instances_available, 'num_authors': num_authors,
-                 'num_visits': num_visits},
+        context=context,
     )
 
 
